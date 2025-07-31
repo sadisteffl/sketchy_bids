@@ -1,0 +1,49 @@
+name: App Build & Push to ECR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/backend/**'
+      - 'src/frontend/**'
+      - '.github/workflows/app-build-push.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build & Push App Images
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1
+      ECR_BACKEND_REPO: sketchy-bids-backend-app
+      ECR_FRONTEND_REPO: sketchy-bids-frontend-app 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::296062560614:role/github-actions-ecr-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        run: |
+          docker build -t ${{ env.ECR_BACKEND_REPO }} ./src/backend
+          docker tag ${{ env.ECR_BACKEND_REPO }}:latest ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_BACKEND_REPO }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_BACKEND_REPO }}:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t ${{ env.ECR_FRONTEND_REPO }} ./src/frontend
+          docker tag ${{ env.ECR_FRONTEND_REPO }}:latest ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_FRONTEND_REPO }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_FRONTEND_REPO }}:latest

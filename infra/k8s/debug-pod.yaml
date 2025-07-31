@@ -1,0 +1,16 @@
+# debug-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-debugger
+spec:
+  serviceAccountName: sa-sketchybid
+  containers:
+  - name: aws-cli-container
+    image: amazon/aws-cli:latest
+    command: ["/bin/sh", "-c"]
+    args:
+    - >
+      aws secretsmanager get-secret-value --secret-id sketchydraw_back --region us-east-1 &&
+      echo "SUCCESS: Secret was retrieved."
+  restartPolicy: Never

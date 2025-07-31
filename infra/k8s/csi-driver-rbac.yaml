@@ -1,0 +1,28 @@
+# csi-driver-rbac.yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  # This name MUST match the one in your deployment's volumeAttributes
+  name: sketchybid-aws-secrets
+  namespace: default
+spec:
+  provider: aws
+  parameters:
+    objects: |
+      - objectName: "sketchybidsbackendcredentials"
+        objectType: "secretsmanager"
+        jmesPath:
+          - path: "DB_USER"
+            objectAlias: "db_user_from_aws"
+          - path: "DB_PASS"
+            objectAlias: "db_pass_from_aws"
+
+  secretObjects:
+    - secretName: backend-db-creds 
+      type: Opaque
+      data:
+        - objectName: db_user_from_aws
+          key: DB_USER
+        # Create a key in the Kubernetes Secret named 'DB_PASS'
+        - objectName: db_pass_from_aws
+          key: DB_PASS
