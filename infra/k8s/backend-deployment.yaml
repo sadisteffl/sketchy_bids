@@ -1,0 +1,49 @@
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sketchybid-backend
+  labels:
+    app: sketchybid-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sketchybid-backend
+  template:
+    metadata:
+      labels:
+        app: sketchybid-backend
+    spec:
+      serviceAccountName: sa-sketchybid
+      containers:
+        - name: backend
+          image: 296062560614.dkr.ecr.us-east-1.amazonaws.com/sketchy-bids-backend-app:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-db-creds 
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: backend-db-creds
+                  key: DB_PASS
+            - name: DB_HOST
+              value: "10.0.1.251"
+            - name: DB_NAME
+              value: "mongodb_server"
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "sketchybid-aws-secrets"

@@ -1,0 +1,8 @@
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  S3_BUCKET_NAME: "mongodb-backup-c0b037db"
+  REACT_APP_BACKEND_URL: "/api"

@@ -1,0 +1,18 @@
+# network-debugger.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: network-debugger
+spec:
+  containers:
+  - name: busybox
+    image: busybox:latest
+    command: ["/bin/sh", "-c"]
+    args:
+    - >
+      echo "--- DNS RESOLUTION TEST ---";
+      nslookup secretsmanager.us-east-1.amazonaws.com;
+      echo "--- CONNECTIVITY TEST (port 443) ---";
+      nc -zv -w 10 secretsmanager.us-east-1.amazonaws.com 443;
+      echo "--- TEST COMPLETE ---";
+  restartPolicy: Never
